@@ -15,6 +15,33 @@ const port = process.env.PORT || 3000;  // Port for the server
 // Your bot's token
 const botToken = 'YOUR_BOT_TOKEN';  // Replace with your Discord bot token
 
+// Custom responses
+const responses = {
+  greeting: [
+    "Why hello!",
+    "Bleep bloop.",
+    "How d'ya do?",
+    "Greetings!",
+    "Good day.",
+    "Wonderful weather we're having."
+  ],
+  success: [
+    "Done.",
+    "Completed. Bleep bloop.",
+    "Taken care of.",
+    "You know best, boss.",
+    "As you request.",
+    "At your service. Bleep bloop.",
+    "I wish I would have thought of that myself!"
+  ],
+  error: [
+    "Uh oh!",
+    "Woops...",
+    "Dang nabbit!",
+    "ERR: ID10T. Haha, just kidding. Seriously though..."
+  ]
+};
+
 // CoinMarketCap API URL and options to fetch cryptocurrency data
 const tickerUrl = 'https://api.coinmarketcap.com/v1/ticker/';
 const tickerUpdateInterval = 30;  // Update interval in seconds
@@ -32,7 +59,7 @@ async function getTickerData() {
 
 // Handle the bot's ready event
 client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+  console.log(`${randomResponse(responses.greeting)} Logged in as ${client.user.tag}!`);
 });
 
 // Handle incoming messages
@@ -45,7 +72,7 @@ client.on('messageCreate', async (message) => {
     const command = args[1]?.toLowerCase();
 
     if (command === 'help') {
-      message.channel.send('Here are some commands you can use:\n' +
+      message.channel.send(`${randomResponse(responses.success)} Here are some commands you can use:\n` +
         '!cryptobot price <coin_symbol> - Get current price of a coin (e.g., !cryptobot price btc)\n' +
         '!cryptobot list - Get a list of available coins\n' +
         '!cryptobot update - Get the latest cryptocurrency data');
@@ -63,12 +90,12 @@ client.on('messageCreate', async (message) => {
       if (data) {
         const coin = data.find(c => c.symbol.toUpperCase() === coinSymbol);
         if (coin) {
-          message.channel.send(`*${coin.symbol.toUpperCase()}* Price: $${coin.price_usd} USD`);
+          message.channel.send(`${randomResponse(responses.success)} *${coin.symbol.toUpperCase()}* Price: $${coin.price_usd} USD`);
         } else {
-          message.channel.send('Coin not found. Please try again with a valid symbol.');
+          message.channel.send(`${randomResponse(responses.error)} Coin not found. Please try again with a valid symbol.`);
         }
       } else {
-        message.channel.send('Failed to fetch coin data. Please try again later.');
+        message.channel.send(`${randomResponse(responses.error)} Failed to fetch coin data. Please try again later.`);
       }
     }
 
@@ -79,7 +106,7 @@ client.on('messageCreate', async (message) => {
         const coinList = data.map(c => c.symbol).join(', ');
         message.channel.send(`Available coins: ${coinList}`);
       } else {
-        message.channel.send('Failed to fetch coin data. Please try again later.');
+        message.channel.send(`${randomResponse(responses.error)} Failed to fetch coin data. Please try again later.`);
       }
     }
 
@@ -87,16 +114,22 @@ client.on('messageCreate', async (message) => {
     if (command === 'update') {
       const data = await getTickerData();
       if (data) {
-        message.channel.send('Here are the latest updates:');
+        message.channel.send(`${randomResponse(responses.success)} Here are the latest updates:`);
         data.slice(0, 10).forEach(coin => {
           message.channel.send(`*${coin.symbol.toUpperCase()}*: $${coin.price_usd} USD`);
         });
       } else {
-        message.channel.send('Failed to fetch the latest data. Please try again later.');
+        message.channel.send(`${randomResponse(responses.error)} Failed to fetch the latest data. Please try again later.`);
       }
     }
   }
 });
+
+// Function to return a random response from a given array
+function randomResponse(responseArray) {
+  const randomIndex = Math.floor(Math.random() * responseArray.length);
+  return responseArray[randomIndex];
+}
 
 // Log the bot in with your token
 client.login(botToken);
